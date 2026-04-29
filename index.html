@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Sync Agent | 工业级视觉一致性控制协议</title>
+    <style>
+        :root {
+            --primary-bg: #0d0d0d;
+            --accent-color: #00ffcc;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 侧边导航栏 */
+        nav {
+            width: 80px;
+            background: rgba(0,0,0,0.5);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin-bottom: 30px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .nav-item:hover { opacity: 1; color: var(--accent-color); }
+
+        /* 主面板 */
+        main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
+        .user-status { display: flex; align-items: center; gap: 20px; }
+
+        /* 通用卡片样式 */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        /* 脚本上传区 */
+        .upload-area {
+            border: 2px dashed rgba(0, 255, 204, 0.3);
+            text-align: center;
+            padding: 50px;
+            transition: 0.3s;
+        }
+
+        .upload-area:hover { border-color: var(--accent-color); background: rgba(0, 255, 204, 0.05); }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            resize: none;
+        }
+
+        /* 按钮 */
+        .btn {
+            background: var(--accent-color);
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4); }
+
+        /* 状态流监控 */
+        .agent-flow {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            background: #555;
+        }
+
+        .active-dot { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-item">🏠</div>
+    <div class="nav-item">⚙️</div>
+    <div class="nav-item">📁</div>
+    <div class="nav-item" title="充值">💰</div>
+</nav>
+
+<main>
+    <header>
+        <div class="logo">V-SYNC AGENT <span style="font-size: 12px; vertical-align: middle; opacity: 0.6;">v1.0.4</span></div>
+        <div class="user-status">
+            <span>账户余额: <strong style="color: var(--accent-color);">1,250,000 Tokens</strong></span>
+            <button class="btn" style="padding: 5px 15px; font-size: 12px;">充值</button>
+            <div style="width: 35px; height: 35px; background: #333; border-radius: 50%;"></div>
+        </div>
+    </header>
+
+    <section class="card">
+        <h3>项目剧本/指令输入 (Script Analysis)</h3>
+        <p style="opacity: 0.6; font-size: 14px;">请输入您的创意剧本或分镜描述，Agent 将自动进行语义锚定与一致性校验。</p>
+        <textarea placeholder="例如：一个身穿绿色制服的信号员，在废弃的太空站中发现了一个发光的罐子..."></textarea>
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 12px; opacity: 0.5;">支持格式: .txt, .pdf, .doc</div>
+            <button class="btn">开始执行生成任务 (Execute Engine)</button>
+        </div>
+    </section>
+
+    <section class="agent-flow">
+        <div class="card">
+            <h4><span class="status-dot active-dot"></span>语义解析层</h4>
+            <p style="font-size: 12px; opacity: 0.7;">正在解构叙事逻辑，建立时空锚点...</p>
+        </div>
+        <div class="card">
+            <h4><span class="status-dot"></span>参数架构层</h4>
+            <p style="font-size: 12px; opacity: 0.7;">等待前置任务完成，准备转译视觉协议...</p>
+        </div>
+        <div class="card">
+            <h4><span class="status-dot"></span>一致性校验层</h4>
+            <p style="font-size: 12px; opacity: 0.7;">待命中，准备执行 ReAct 闭环修复...</p>
+        </div>
+    </section>
+
+    <section class="card" style="height: 300px; display: flex; align-items: center; justify-content: center; border-style: solid;">
+        <div style="text-align: center; opacity: 0.3;">
+            <div style="font-size: 40px;">🖼️</div>
+            <p>任务未开始，等待输出结果报告 (Output JSON / Storyboard)</p>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>
