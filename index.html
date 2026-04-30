@@ -10,6 +10,7 @@
             --accent-color: #00ffcc;
             --glass-bg: rgba(255, 255, 255, 0.05);
             --text-main: #e0e0e0;
+            --error-color: #ff4d4d;
         }
 
         body {
@@ -22,7 +23,7 @@
             overflow: hidden;
         }
 
-        /* 侧边导航栏 */
+        /* 侧边导航 */
         nav {
             width: 80px;
             background: rgba(0,0,0,0.5);
@@ -33,21 +34,11 @@
             padding: 20px 0;
         }
 
-        .nav-item {
-            margin-bottom: 30px;
-            cursor: pointer;
-            opacity: 0.5;
-            transition: 0.3s;
-        }
-
+        .nav-item { margin-bottom: 30px; cursor: pointer; opacity: 0.5; transition: 0.3s; font-size: 20px; }
         .nav-item:hover { opacity: 1; color: var(--accent-color); }
 
         /* 主面板 */
-        main {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
+        main { flex: 1; padding: 40px; overflow-y: auto; }
 
         header {
             display: flex;
@@ -71,7 +62,7 @@
 
         textarea {
             width: 100%;
-            height: 150px;
+            height: 120px;
             background: rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.1);
             color: white;
@@ -80,6 +71,7 @@
             margin-top: 15px;
             resize: none;
             box-sizing: border-box;
+            font-size: 14px;
         }
 
         /* 按钮 */
@@ -95,6 +87,7 @@
         }
 
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4); }
+        .btn:disabled { background: #333; color: #777; cursor: not-allowed; transform: none; }
 
         /* 状态流监控 */
         .agent-flow {
@@ -109,22 +102,32 @@
             border-radius: 50%;
             display: inline-block;
             margin-right: 10px;
-            background: #555;
+            background: #444;
             transition: 0.5s;
         }
 
-        .active-dot { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
+        .active-dot { background: var(--accent-color) !important; box-shadow: 0 0 10px var(--accent-color); }
+        .running-dot { animation: pulse 1s infinite; background: #ffcc00 !important; }
 
-        /* 结果显示区 */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        /* 协议显示区 */
         #result-box {
             white-space: pre-wrap;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Consolas', monospace;
             font-size: 13px;
             line-height: 1.6;
             color: var(--accent-color);
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
+            text-align: left;
         }
+
+        .loading-container { text-align: center; opacity: 0.4; padding: 60px 0; }
     </style>
 </head>
 <body>
@@ -133,83 +136,124 @@
     <div class="nav-item">🏠</div>
     <div class="nav-item">⚙️</div>
     <div class="nav-item">📁</div>
-    <div class="nav-item" title="充值">💰</div>
+    <div class="nav-item">💰</div>
 </nav>
 
 <main>
     <header>
-        <div class="logo">V-SYNC AGENT <span style="font-size: 12px; vertical-align: middle; opacity: 0.6;">v1.0.4</span></div>
+        <div class="logo">V-SYNC AGENT <span style="font-size: 12px; vertical-align: middle; opacity: 0.6;">v1.0.5</span></div>
         <div class="user-status">
-            <span>账户余额: <strong style="color: var(--accent-color);">1,250,000 Tokens</strong></span>
+            <span>余额: <strong style="color: var(--accent-color);">1,250,000 Tokens</strong></span>
             <button class="btn" style="padding: 5px 15px; font-size: 12px;">充值</button>
             <div style="width: 35px; height: 35px; background: #333; border-radius: 50%;"></div>
         </div>
     </header>
 
+    <!-- 输入区 -->
     <section class="card">
         <h3>项目剧本/指令输入 (Script Analysis)</h3>
-        <p style="opacity: 0.6; font-size: 14px;">请输入您的创意剧本或分镜描述，Agent 将自动进行语义锚定与一致性校验。</p>
-        <textarea id="script-input" placeholder="例如：一个身穿绿色制服的信号员，在废弃的太空站中发现了一个发光的罐子..."></textarea>
+        <textarea id="user-script" placeholder="在此输入剧本描述，例如：一个身穿深蓝色制服的宇航员..."></textarea>
         <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 12px; opacity: 0.5;">支持格式: .txt, .pdf, .doc</div>
-            <button class="btn" onclick="alert('请在本地 CMD 运行 python main.py 开始执行！')">开始执行生成任务 (Execute Engine)</button>
+            <div id="engine-status" style="font-size: 12px; opacity: 0.5;">引擎就绪，等待指令</div>
+            <button id="run-btn" class="btn" onclick="triggerAgent()">唤醒 Agent 引擎并运行</button>
         </div>
     </section>
 
+    <!-- 状态流监控 -->
     <section class="agent-flow">
         <div class="card">
-            <h4><span id="dot-1" class="status-dot active-dot"></span>语义解析层</h4>
-            <p style="font-size: 12px; opacity: 0.7;">正在解构叙事逻辑，建立时空锚点...</p>
+            <h4><span id="dot-1" class="status-dot"></span> 语义解析层</h4>
+            <p style="font-size: 12px; opacity: 0.6;">解构叙事逻辑与时空锚点</p>
         </div>
         <div class="card">
-            <h4><span id="dot-2" class="status-dot"></span>参数架构层</h4>
-            <p style="font-size: 12px; opacity: 0.7;">准备转译视觉协议...</p>
+            <h4><span id="dot-2" class="status-dot"></span> 参数架构层</h4>
+            <p style="font-size: 12px; opacity: 0.6;">转译工业级视觉控制协议</p>
         </div>
         <div class="card">
-            <h4><span id="dot-3" class="status-dot"></span>一致性校验层</h4>
-            <p style="font-size: 12px; opacity: 0.7;">准备执行 ReAct 闭环修复...</p>
+            <h4><span id="dot-3" class="status-dot"></span> 一致性校验层</h4>
+            <p style="font-size: 12px; opacity: 0.6;">执行 ReAct 闭环一致性修复</p>
         </div>
     </section>
 
-    <!-- 动态结果展示区 -->
-    <section class="card" style="min-height: 300px; border-style: dashed; border-color: rgba(0,255,204,0.2);">
-        <div id="loading-view" style="text-align: center; opacity: 0.3; padding-top: 80px;">
-            <div style="font-size: 40px;">🖼️</div>
-            <p>任务未开始，等待后端 Agent 输出结果报告 (Output JSON / Storyboard)</p>
+    <!-- 协议报告区 -->
+    <section class="card" style="min-height: 300px; border: 1px dashed rgba(0,255,204,0.3);">
+        <div id="placeholder-view" class="loading-container">
+            <div style="font-size: 40px;">🛸</div>
+            <p id="main-status">等待指令下达...</p>
         </div>
         <div id="result-box" style="display: none;"></div>
     </section>
 </main>
 
 <script>
-    // 自动同步函数
-    async function syncAgentData() {
+    const SERVER_URL = "http://127.0.0.1:5000/run-agent";
+
+    // 1. 触发 Agent 运行
+    async function triggerAgent() {
+        const btn = document.getElementById('run-btn');
+        const mainStatus = document.getElementById('main-status');
+        const dot1 = document.getElementById('dot-1');
+        
+        // UI 状态初始化
+        btn.disabled = true;
+        btn.innerText = "🚀 引擎运行中...";
+        mainStatus.innerText = "正在通过 API 唤醒本地计算核心...";
+        dot1.classList.add('running-dot');
+
         try {
-            const response = await fetch('protocol_data.json');
-            if (!response.ok) return;
+            const response = await fetch(SERVER_URL, { method: 'POST' });
+            const data = await response.json();
 
-            const jsonData = await response.json();
-
-            if (jsonData.status === 'completed') {
-                // 隐藏等待提示，显示结果内容
-                document.getElementById('loading-view').style.display = 'none';
-                const resultBox = document.getElementById('result-box');
-                resultBox.style.display = 'block';
-                resultBox.innerText = jsonData.data;
-
-                // 激活所有状态灯
-                document.getElementById('dot-2').classList.add('active-dot');
-                document.getElementById('dot-3').classList.add('active-dot');
-
-                console.log("Agent 视觉协议同步成功！");
+            if (data.status === 'success') {
+                mainStatus.innerText = "任务处理完成，正在拉取协议数据...";
+                // 运行成功后，立刻同步数据
+                fetchProtocolData();
+            } else {
+                throw new Error(data.message);
             }
-        } catch (error) {
-            // 静默处理文件不存在的情况
+        } catch (err) {
+            alert("错误：无法连接到本地 server.py。请确保它正在 CMD 中运行！");
+            resetUI();
         }
     }
 
-    // 每 3 秒自动轮询一次
-    setInterval(syncAgentData, 3000);
+    // 2. 从本地 JSON 同步数据
+    async function fetchProtocolData() {
+        try {
+            const response = await fetch('protocol_data.json');
+            const result = await response.json();
+
+            if (result.status === 'completed') {
+                // 更新 UI
+                document.getElementById('placeholder-view').style.display = 'none';
+                const box = document.getElementById('result-box');
+                box.style.display = 'block';
+                box.innerText = result.data;
+
+                // 亮起所有灯
+                document.querySelectorAll('.status-dot').forEach(dot => {
+                    dot.classList.remove('running-dot');
+                    dot.classList.add('active-dot');
+                });
+                
+                document.getElementById('run-btn').innerText = "✅ 协议同步成功";
+                document.getElementById('engine-status').innerText = "最新协议已生成";
+            }
+        } catch (e) {
+            console.error("同步失败", e);
+        }
+    }
+
+    function resetUI() {
+        const btn = document.getElementById('run-btn');
+        btn.disabled = false;
+        btn.innerText = "唤醒 Agent 引擎并运行";
+        document.getElementById('main-status').innerText = "等待指令下达...";
+        document.querySelectorAll('.status-dot').forEach(dot => dot.className = 'status-dot');
+    }
+
+    // 每 5 秒自动检查是否有数据更新（可选）
+    setInterval(fetchProtocolData, 5000);
 </script>
 
 </body>
