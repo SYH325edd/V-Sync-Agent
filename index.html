@@ -3,258 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-Sync Agent | 工业级视觉一致性控制协议</title>
+    <title>V-SYNC | 顶级分镜全自动系统</title>
     <style>
-        :root {
-            --primary-bg: #0d0d0d;
-            --accent-color: #00ffcc;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --text-main: #e0e0e0;
-            --error-color: #ff4d4d;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-main);
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* 侧边导航 */
-        nav {
-            width: 80px;
-            background: rgba(0,0,0,0.5);
-            border-right: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px 0;
-        }
-
-        .nav-item { margin-bottom: 30px; cursor: pointer; opacity: 0.5; transition: 0.3s; font-size: 20px; }
-        .nav-item:hover { opacity: 1; color: var(--accent-color); }
-
-        /* 主面板 */
-        main { flex: 1; padding: 40px; overflow-y: auto; }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .logo { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
-        .user-status { display: flex; align-items: center; gap: 20px; }
-
-        /* 通用卡片样式 */
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 120px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            resize: none;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-
-        /* 按钮 */
-        .btn {
-            background: var(--accent-color);
-            color: black;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 204, 0.4); }
-        .btn:disabled { background: #333; color: #777; cursor: not-allowed; transform: none; }
-
-        /* 状态流监控 */
-        .agent-flow {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 10px;
-            background: #444;
-            transition: 0.5s;
-        }
-
-        .active-dot { background: var(--accent-color) !important; box-shadow: 0 0 10px var(--accent-color); }
-        .running-dot { animation: pulse 1s infinite; background: #ffcc00 !important; }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
-
-        /* 协议显示区 */
-        #result-box {
-            white-space: pre-wrap;
-            font-family: 'Consolas', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            color: var(--accent-color);
-            max-height: 500px;
-            overflow-y: auto;
-            text-align: left;
-        }
-
-        .loading-container { text-align: center; opacity: 0.4; padding: 60px 0; }
+        :root { --primary: #4f46e5; --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; }
+        body { font-family: 'PingFang SC', sans-serif; background: var(--bg); margin: 0; color: #1e293b; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 5%; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: bold; font-size: 22px; color: var(--primary); }
+        .nav-auth button { padding: 8px 20px; border-radius: 6px; cursor: pointer; border: none; font-size: 14px; }
+        .btn-recharge { background: var(--primary); color: white; margin-left: 10px; }
+        .wrapper { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
+        .main-panel { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        textarea#scriptInput { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 8px; padding: 15px; font-size: 14px; outline-color: var(--primary); resize: none; margin-bottom: 20px; }
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .grid-box { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fff; display: flex; flex-direction: column; height: 160px; }
+        .grid-box span { font-size: 11px; color: #94a3b8; font-weight: bold; }
+        .grid-box textarea { flex: 1; border: none; outline: none; font-size: 12px; margin-top: 5px; resize: none; color: #334155; line-height: 1.6; background: transparent; }
+        .grid-box select { width: 100%; font-size: 11px; border: 1px solid #f1f5f9; background: #f8fafc; color: #64748b; margin-top: 5px; padding: 4px; border-radius: 4px; }
+        .btn-execute { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #statusOutput { font-size: 12px; color: #64748b; margin-top: 15px; background: #f1f5f9; padding: 10px; border-radius: 6px; min-height: 40px; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-item">🏠</div>
-    <div class="nav-item">⚙️</div>
-    <div class="nav-item">📁</div>
-    <div class="nav-item">💰</div>
+    <div class="logo">V-SYNC AGENT</div>
+    <div class="nav-auth">
+        <button style="background:none;">登录</button>
+        <button class="btn-recharge">充值中心</button>
+    </div>
 </nav>
 
-<main>
-    <header>
-        <div class="logo">V-SYNC AGENT <span style="font-size: 12px; vertical-align: middle; opacity: 0.6;">v1.0.5</span></div>
-        <div class="user-status">
-            <span>余额: <strong style="color: var(--accent-color);">1,250,000 Tokens</strong></span>
-            <button class="btn" style="padding: 5px 15px; font-size: 12px;">充值</button>
-            <div style="width: 35px; height: 35px; background: #333; border-radius: 50%;"></div>
+<div class="wrapper">
+    <div class="main-panel">
+        <div style="font-weight:600; margin-bottom:10px;">剧本解析终端</div>
+        <textarea id="scriptInput" placeholder="在此输入原始剧本..."></textarea>
+        
+        <div style="font-weight:600; margin-bottom:10px;">3*3 顶级分镜精修框架</div>
+        <div class="grid-container" id="gridDisplay">
+            <script>
+                for(let i=1; i<=9; i++) {
+                    document.write(`
+                        <div class="grid-box">
+                            <span>SHOT ${i}</span>
+                            <textarea id="prompt-${i}" placeholder="等待大师创作..."></textarea>
+                            <select id="shot-type-${i}">
+                                <option>全景</option><option selected>中景</option>
+                                <option>近景</option><option>特写</option><option>大特写</option>
+                            </select>
+                        </div>
+                    `);
+                }
+            </script>
         </div>
-    </header>
+        <div id="statusOutput">系统待命。</div>
+    </div>
 
-    <!-- 输入区 -->
-    <section class="card">
-        <h3>项目剧本/指令输入 (Script Analysis)</h3>
-        <textarea id="user-script" placeholder="在此输入剧本描述，例如：一个身穿深蓝色制服的宇航员..."></textarea>
-        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <div id="engine-status" style="font-size: 12px; opacity: 0.5;">引擎就绪，等待指令</div>
-            <button id="run-btn" class="btn" onclick="triggerAgent()">唤醒 Agent 引擎并运行</button>
+    <div class="side-panel">
+        <div class="card" style="background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+            <label style="font-size:13px; font-weight:600; display:block; margin-bottom:10px;">生成模型</label>
+            <select id="modeSelect" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border);">
+                <option value="storyboard_grid">3*3 大师级分镜填充</option>
+            </select>
+            <button class="btn-execute" style="margin-top:20px;" onclick="runMasterAgent()">生成 3*3 提示词</button>
         </div>
-    </section>
-
-    <!-- 状态流监控 -->
-    <section class="agent-flow">
-        <div class="card">
-            <h4><span id="dot-1" class="status-dot"></span> 语义解析层</h4>
-            <p style="font-size: 12px; opacity: 0.6;">解构叙事逻辑与时空锚点</p>
-        </div>
-        <div class="card">
-            <h4><span id="dot-2" class="status-dot"></span> 参数架构层</h4>
-            <p style="font-size: 12px; opacity: 0.6;">转译工业级视觉控制协议</p>
-        </div>
-        <div class="card">
-            <h4><span id="dot-3" class="status-dot"></span> 一致性校验层</h4>
-            <p style="font-size: 12px; opacity: 0.6;">执行 ReAct 闭环一致性修复</p>
-        </div>
-    </section>
-
-    <!-- 协议报告区 -->
-    <section class="card" style="min-height: 300px; border: 1px dashed rgba(0,255,204,0.3);">
-        <div id="placeholder-view" class="loading-container">
-            <div style="font-size: 40px;">🛸</div>
-            <p id="main-status">等待指令下达...</p>
-        </div>
-        <div id="result-box" style="display: none;"></div>
-    </section>
-</main>
+    </div>
+</div>
 
 <script>
-    const SERVER_URL = "http://127.0.0.1:5001/run-agent";
+    async function runMasterAgent() {
+        const script = document.getElementById('scriptInput').value;
+        const status = document.getElementById('statusOutput');
+        if (!script) return alert("请输入剧本");
 
-    // 1. 触发 Agent 运行
-    async function triggerAgent() {
-        const btn = document.getElementById('run-btn');
-        const mainStatus = document.getElementById('main-status');
-        const dot1 = document.getElementById('dot-1');
-        
-        // UI 状态初始化
-        btn.disabled = true;
-        btn.innerText = "🚀 引擎运行中...";
-        mainStatus.innerText = "正在通过 API 唤醒本地计算核心...";
-        dot1.classList.add('running-dot');
+        status.innerText = "⏳ 顶级大师正在处理视觉流...";
 
         try {
-            const response = await fetch(SERVER_URL, { method: 'POST' });
+            const response = await fetch('http://127.0.0.1:5001/api/run-agent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ script: script, mode: 'storyboard_grid' })
+            });
             const data = await response.json();
 
             if (data.status === 'success') {
-                mainStatus.innerText = "任务处理完成，正在拉取协议数据...";
-                // 运行成功后，立刻同步数据
-                fetchProtocolData();
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (err) {
-            alert("错误：无法连接到本地 server.py。请确保它正在 CMD 中运行！");
-            resetUI();
-        }
-    }
-
-    // 2. 从本地 JSON 同步数据
-    async function fetchProtocolData() {
-        try {
-            const response = await fetch('protocol_data.json');
-            const result = await response.json();
-
-            if (result.status === 'completed') {
-                // 更新 UI
-                document.getElementById('placeholder-view').style.display = 'none';
-                const box = document.getElementById('result-box');
-                box.style.display = 'block';
-                box.innerText = result.data;
-
-                // 亮起所有灯
-                document.querySelectorAll('.status-dot').forEach(dot => {
-                    dot.classList.remove('running-dot');
-                    dot.classList.add('active-dot');
-                });
+                const rawText = data.result;
                 
-                document.getElementById('run-btn').innerText = "✅ 协议同步成功";
-                document.getElementById('engine-status').innerText = "最新协议已生成";
+                // --- 终极无死角解析逻辑 ---
+                // 不管有没有换行，只要看到数字加标点就切开
+                const masterPattern = /\d+[\.、:：\s]/g;
+                let contents = rawText.split(masterPattern).filter(c => c.trim().length > 2);
+
+                for (let i = 1; i <= 9; i++) {
+                    const box = document.getElementById(`prompt-${i}`);
+                    if (contents[i-1]) {
+                        box.value = contents[i-1].trim();
+                        // 顺便做个简单的关键词识别，自动切换下拉框
+                        const val = contents[i-1];
+                        const sel = document.getElementById(`shot-type-${i}`);
+                        if (val.includes("特写")) sel.value = "特写";
+                        else if (val.includes("全景")) sel.value = "全景";
+                        else if (val.includes("近景")) sel.value = "近景";
+                    }
+                }
+                status.innerText = "✅ 协议同步完成。9格分镜已精准就位。";
             }
         } catch (e) {
-            console.error("同步失败", e);
+            status.innerText = "❌ 链接失败，请确认后端已启动。";
         }
     }
-
-    function resetUI() {
-        const btn = document.getElementById('run-btn');
-        btn.disabled = false;
-        btn.innerText = "唤醒 Agent 引擎并运行";
-        document.getElementById('main-status').innerText = "等待指令下达...";
-        document.querySelectorAll('.status-dot').forEach(dot => dot.className = 'status-dot');
-    }
-
-    // 每 2 秒自动检查是否有数据更新（可选）
-    setInterval(fetchProtocolData, 5001);
 </script>
-
 </body>
 </html>
