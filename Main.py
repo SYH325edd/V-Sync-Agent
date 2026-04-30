@@ -1,3 +1,5 @@
+import json
+import requests # 如果没有请 pip install requests
 import os
 from crewai import Agent, Task, Crew, Process
 from langchain_openai import ChatOpenAI
@@ -7,7 +9,7 @@ from langchain_openai import ChatOpenAI
 # =================================================================
 # 请确保已在火山引擎控制台创建推理接入点
 API_KEY = "ark-4a6d7010-d649-4799-ade7-a81ab99a909d-51290"
-ENDPOINT_ID = "ep-20260430102926-66md9"
+ENDPOINT_ID = "ep-20260430112948-v88j8"
 
 # 初始化豆包 LLM (OpenAI 兼容协议)
 doubao_llm = ChatOpenAI(
@@ -108,11 +110,19 @@ if __name__ == "__main__":
         verbose=True
     )
 
-    # 开始执行
-    result = vsync_crew.kickoff()
+   # 开始执行
+result = vsync_crew.kickoff()
 
-    print("\n\n" + "="*50)
-    print("✅ V-Sync Agent 任务执行完毕！")
-    print("最终输出报告内容：")
-    print(result)
-    print("="*50)
+print("\n\n" + "="*50)
+print("✔ V-Sync Agent 任务执行完毕！")
+print("最终输出报告内容：")
+print(result)
+print("="*50)
+
+# --- 同步给网页前端 ---
+import json
+print("\n[系统信息] 正在将 Agent 推理协议同步至本地数据库...")
+with open("protocol_data.json", "w", encoding="utf-8") as f:
+    # 将 result 对象转为字符串并存入 JSON
+    json.dump({"status": "completed", "data": str(result)}, f, ensure_ascii=False, indent=4)
+print("[系统信息] 同步成功！protocol_data.json 已就绪。")

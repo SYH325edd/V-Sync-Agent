@@ -19,6 +19,7 @@
             margin: 0;
             display: flex;
             height: 100vh;
+            overflow: hidden;
         }
 
         /* 侧边导航栏 */
@@ -68,16 +69,6 @@
             margin-bottom: 20px;
         }
 
-        /* 脚本上传区 */
-        .upload-area {
-            border: 2px dashed rgba(0, 255, 204, 0.3);
-            text-align: center;
-            padding: 50px;
-            transition: 0.3s;
-        }
-
-        .upload-area:hover { border-color: var(--accent-color); background: rgba(0, 255, 204, 0.05); }
-
         textarea {
             width: 100%;
             height: 150px;
@@ -88,6 +79,7 @@
             border-radius: 8px;
             margin-top: 15px;
             resize: none;
+            box-sizing: border-box;
         }
 
         /* 按钮 */
@@ -118,9 +110,21 @@
             display: inline-block;
             margin-right: 10px;
             background: #555;
+            transition: 0.5s;
         }
 
         .active-dot { background: var(--accent-color); box-shadow: 0 0 10px var(--accent-color); }
+
+        /* 结果显示区 */
+        #result-box {
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--accent-color);
+            max-height: 400px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -145,35 +149,68 @@
     <section class="card">
         <h3>项目剧本/指令输入 (Script Analysis)</h3>
         <p style="opacity: 0.6; font-size: 14px;">请输入您的创意剧本或分镜描述，Agent 将自动进行语义锚定与一致性校验。</p>
-        <textarea placeholder="例如：一个身穿绿色制服的信号员，在废弃的太空站中发现了一个发光的罐子..."></textarea>
+        <textarea id="script-input" placeholder="例如：一个身穿绿色制服的信号员，在废弃的太空站中发现了一个发光的罐子..."></textarea>
         <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
             <div style="font-size: 12px; opacity: 0.5;">支持格式: .txt, .pdf, .doc</div>
-            <button class="btn">开始执行生成任务 (Execute Engine)</button>
+            <button class="btn" onclick="alert('请在本地 CMD 运行 python main.py 开始执行！')">开始执行生成任务 (Execute Engine)</button>
         </div>
     </section>
 
     <section class="agent-flow">
         <div class="card">
-            <h4><span class="status-dot active-dot"></span>语义解析层</h4>
+            <h4><span id="dot-1" class="status-dot active-dot"></span>语义解析层</h4>
             <p style="font-size: 12px; opacity: 0.7;">正在解构叙事逻辑，建立时空锚点...</p>
         </div>
         <div class="card">
-            <h4><span class="status-dot"></span>参数架构层</h4>
-            <p style="font-size: 12px; opacity: 0.7;">等待前置任务完成，准备转译视觉协议...</p>
+            <h4><span id="dot-2" class="status-dot"></span>参数架构层</h4>
+            <p style="font-size: 12px; opacity: 0.7;">准备转译视觉协议...</p>
         </div>
         <div class="card">
-            <h4><span class="status-dot"></span>一致性校验层</h4>
-            <p style="font-size: 12px; opacity: 0.7;">待命中，准备执行 ReAct 闭环修复...</p>
+            <h4><span id="dot-3" class="status-dot"></span>一致性校验层</h4>
+            <p style="font-size: 12px; opacity: 0.7;">准备执行 ReAct 闭环修复...</p>
         </div>
     </section>
 
-    <section class="card" style="height: 300px; display: flex; align-items: center; justify-content: center; border-style: solid;">
-        <div style="text-align: center; opacity: 0.3;">
+    <!-- 动态结果展示区 -->
+    <section class="card" style="min-height: 300px; border-style: dashed; border-color: rgba(0,255,204,0.2);">
+        <div id="loading-view" style="text-align: center; opacity: 0.3; padding-top: 80px;">
             <div style="font-size: 40px;">🖼️</div>
-            <p>任务未开始，等待输出结果报告 (Output JSON / Storyboard)</p>
+            <p>任务未开始，等待后端 Agent 输出结果报告 (Output JSON / Storyboard)</p>
         </div>
+        <div id="result-box" style="display: none;"></div>
     </section>
 </main>
+
+<script>
+    // 自动同步函数
+    async function syncAgentData() {
+        try {
+            const response = await fetch('protocol_data.json');
+            if (!response.ok) return;
+
+            const jsonData = await response.json();
+
+            if (jsonData.status === 'completed') {
+                // 隐藏等待提示，显示结果内容
+                document.getElementById('loading-view').style.display = 'none';
+                const resultBox = document.getElementById('result-box');
+                resultBox.style.display = 'block';
+                resultBox.innerText = jsonData.data;
+
+                // 激活所有状态灯
+                document.getElementById('dot-2').classList.add('active-dot');
+                document.getElementById('dot-3').classList.add('active-dot');
+
+                console.log("Agent 视觉协议同步成功！");
+            }
+        } catch (error) {
+            // 静默处理文件不存在的情况
+        }
+    }
+
+    // 每 3 秒自动轮询一次
+    setInterval(syncAgentData, 3000);
+</script>
 
 </body>
 </html>
