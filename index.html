@@ -186,7 +186,7 @@
 </main>
 
 <script>
-    const SERVER_URL = "http://127.0.0.1:5000/run-agent";
+    const SERVER_URL = "http://127.0.0.1:5001/run-agent";
 
     // 1. 触发 Agent 运行
     async function triggerAgent() {
@@ -252,8 +252,8 @@
         document.querySelectorAll('.status-dot').forEach(dot => dot.className = 'status-dot');
     }
 
-    // 每 5 秒自动检查是否有数据更新（可选）
-    setInterval(fetchProtocolData, 5000);
+    // 每 2 秒自动检查是否有数据更新（可选）
+    setInterval(fetchProtocolData, 5001);
 </script>
 
 </body>
